@@ -22,38 +22,23 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Get version from package.json
-        id: get_version
-        run: echo "VERSION=v$(npm pkg get version | tr -d '\"')" >> $GITHUB_ENV
-
       - name: Check for matching tag and bump version
         id: check-tag
         run: |
           TAG_EXISTS=true
+          VERSION=v$(npm pkg get version | tr -d '\"')
           while [ "$TAG_EXISTS" = true ]; do  # Corrected the spacing in the while condition
             if git rev-parse "${VERSION}" >/dev/null 2>&1; then
               echo "Tag ${VERSION} already exists. Bumping version."
               npm version patch --no-git-tag-version
-              echo "VERSION=v$(npm pkg get version | tr -d '\"')" >> $GITHUB_ENV
+              VERSION=v$(npm pkg get version | tr -d '\"')
             else
               echo "Tag ${VERSION} does not exist."
               TAG_EXISTS=false
+              git config --local user.name "github-actions[bot]"
+              git config --local user.email "github-actions[bot]@users.noreply.github.com"
+              git tag "${VERSION}"
+              git push origin "${VERSION}"
             fi
           done
-
-          # Final check to ensure no matching tag exists
-          if git rev-parse "${VERSION}" >/dev/null 2>&1; then
-            echo "Tag ${VERSION} already exists."
-            echo "tag_exists=true" >> $GITHUB_ENV
-          else
-            echo "tag_exists=false" >> $GITHUB_ENV
-          fi
         shell: bash
-
-      - name: Create and push tag
-        if: env.check-tag == 'false'
-        run: |
-          git config --local user.name "github-actions[bot]"
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git tag "${{ env.VERSION }}"
-          git push origin "${{ env.VERSION }}"
