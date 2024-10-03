@@ -38,7 +38,7 @@ jobs:
         shell: bash
 
       - name: Create and push tag
-        if: env.tag_exists == 'false'
+        if: env.check-tag == 'false'
         run: |
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
