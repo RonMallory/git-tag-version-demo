@@ -29,18 +29,20 @@ jobs:
       - name: Check for matching tag and bump version
         run: |
           TAG_EXISTS=true
-          while ["$TAG_EXISTS" = true]; do
-            if git rev-parse "${{ env.VERSION }}" >/dev/null 2>&1; then
-              echo "Tag ${{ env.VERSION }} already exists. Bumping version."
+          while [ "$TAG_EXISTS" = true ]; do  # Corrected the spacing in the while condition
+            if git rev-parse "${VERSION}" >/dev/null 2>&1; then
+              echo "Tag ${VERSION} already exists. Bumping version."
               npm version patch --no-git-tag-version
               echo "VERSION=v$(npm pkg get version | tr -d '\"')" >> $GITHUB_ENV
             else
-              echo "Tag ${{ env.VERSION }} does not exist."
+              echo "Tag ${VERSION} does not exist."
               TAG_EXISTS=false
             fi
           done
-          if git rev-parse "${{ env.VERSION }}" >/dev/null 2>&1; then
-            echo "Tag ${{ env.VERSION }} already exists."
+
+          # Final check to ensure no matching tag exists
+          if git rev-parse "${VERSION}" >/dev/null 2>&1; then
+            echo "Tag ${VERSION} already exists."
             echo "tag_exists=true" >> $GITHUB_ENV
           else
             echo "tag_exists=false" >> $GITHUB_ENV
